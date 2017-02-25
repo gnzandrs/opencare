@@ -1,3 +1,19 @@
 from django.db import models
 
-# Create your models here.
+class Company:
+    pass
+
+class Medicine:
+    pass
+
+class Person:
+    pass
+
+class Relationship:
+    pass
+
+class Role:
+    pass
+
+class Treatment:
+    pass

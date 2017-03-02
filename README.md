@@ -1,3 +1,3 @@
 # Opencare
 
-Personal binnacle about personal health
+Binnacle about personal health

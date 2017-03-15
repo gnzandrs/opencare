@@ -1,3 +1,60 @@
 from django.shortcuts import render
+from django.http import HttpResponse
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.renderers import JSONRenderer
+from rest_framework.parsers import JSONParser
+from treatment.models import Treatment
+from treatment.serializers import TreatmentSerializer
 
-# Create your views here.
+class JSONResponse(HttpResponse):
+    """
+    An HttpResponse that renders its content into JSON.
+    """
+    def __init__(self, data, **kwargs):
+        content = JSONRenderer().render(data)
+        kwargs['content_type'] = 'application/json'
+        super(JSONResponse, self).__init__(content, **kwargs)
+
+    @csrf_exempt
+    def treatment_list(request):
+        """
+        List of all Treatmens.
+        """
+        if request.method == 'GET':
+            treatmens = Treatment.objects.all()
+            serializer = TreatmentSerializer(treatmens, many=True)
+            return JSONResponse(serializer.data)
+
+        elif request.method == 'POST':
+            data = JSONParser().parse(request)
+            serializer = TreatmentSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return JSONResponse(serializer.data, status=201)
+            return JSONResponse(serializer.errors, status=400)
+
+    @csrf_exempt
+    def treatment_detail(request, pk):
+        """
+        Retrieve, update or delete a treatment.
+        """
+        try:
+            treatment = Treatment.objects.get(pk=pk)
+        except Treatment.DoesNotExist:
+            return HttpResponse(status=404)
+
+        if request.method == 'GET':
+            serializer = TreatmentSerializer(treatment)
+            return JSONResponse(serializer.data)
+
+        elif request.method == 'PUT':
+            data = JSONParser().parse(request)
+            serializer = TreatmentSerializer(treatment, data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return JSONResponse(serializer.data)
+            return JSONResponse(serializer.errors, status=400)
+
+        elif request.method == 'DELETE':
+            treatment.delete()
+            return HttpResponse(status=204)
